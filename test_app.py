@@ -103,3 +103,18 @@ def test_exception_handler(api,client):
     response = client.get("http://testserver")
 
     assert response.text == "Attribute Error Happened"
+
+def text_static_404(client):
+    assert client.get(f"http://textserver/main.css").status_code == 404
+
+
+def test_static_assets_served(tmpdir_factory):
+    static_dir = tmpdir_factory.mktemp("static")
+    _create_static(static_dir)
+    api = API(static_dir=str(static_dir))
+    client = api.test_session()
+
+    response = client.get(f"http://testserver/{FILE_DIR}/{FILE_NAME}")
+
+    assert response.status_code == 200
+    assert response.text == FILE_CONTENTS

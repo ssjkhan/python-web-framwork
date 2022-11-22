@@ -37,3 +37,12 @@ def template_handler(req,resp):
         "index.html", context = {
             "name" : "Python Full Stack Practice",
             "title" : "My Python Framework"}).encode()
+
+@app.route("/exception")
+def exception_throwing_handler(req,resp):
+    raise AssertionError("This handler should not be used")
+
+def custom_except_handler(req, resp, except_cls):
+    resp.text = str(except_cls)
+
+app.add_exception_handler(custom_except_handler)
