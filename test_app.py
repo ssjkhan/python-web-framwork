@@ -72,3 +72,19 @@ def test_alternative_route(api, client):
     api.add_route("/alternative", home)
 
     assert client.get("http://testserver/alternative")
+
+
+def test_template(api,client):
+    @api.route("/html")
+    def html_handler(req,resp):
+        resp.body = api.template(
+            "index.html",
+            context= {
+                "title" : "my title",
+                "name" : "my name"}).encode()
+            
+    response = client.get("http://testserver/html")
+    
+    assert "text/html" in response.headers["Content-Type"]
+    assert "my title" in response.text
+    assert "my name" in response.text

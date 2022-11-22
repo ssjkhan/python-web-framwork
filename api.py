@@ -3,15 +3,18 @@ from parse import parse
 import inspect
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
 from requests import Session as RequestsSession
-
+import os
+from jinja2 import Environment, FileSystemLoader
 
 class API:
-    def __init__(self):
+    def __init__(self, templates_dir="templates"):
         self.routes = {}
+        
+        self.templates_env = Environment(
+            loader=FileSystemLoader(os.path.abspath(templates_dir)))
 
     def __call__(self, env, callback_):
         req = Request(env)
-
         resp = self.handle_request(req)
 
         return resp(env, callback_)
@@ -19,8 +22,10 @@ class API:
     def find_handler(self,req_path):
         for path, handler in self.routes.items():
             parse_res = parse(path, req_path)
+            
             if parse_res is not None:
                 return handler, parse_res.named
+       
         return None, None
 
     def handle_request(self, req):
@@ -62,3 +67,9 @@ class API:
         assert path not in self.routes, f"Such a route already exists\n{path}\n"
 
         self.routes[path] = handler
+
+    def template(self, template_name, context=None):
+        if context is None:
+            context = {}
+
+        return self.templates_env.get_template(template_name).render(**context)
