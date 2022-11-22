@@ -1,6 +1,20 @@
 import pytest
 from api import API
 
+# helpers
+
+FILE_DIR = "css"
+FILE_NAME = "main.css"
+FILE_CONTENTS = "body {background-color: red}"
+
+def _create_static(static_dir):
+    asset = static_dir.mkdir(FILE_DIR).join(FILE_NAME)
+    asset.write(FILE_CONTENTS)
+
+    return asset
+
+# tests
+
 def test_basic_route_adding(api):
     @api.route("/home")
     def home(req, resp):
