@@ -62,3 +62,13 @@ def test_handler_class_method_invalid(api, client):
 
     with pytest.raises(AttributeError):
         client.get("http://testserver/book")
+
+def test_alternative_route(api, client):
+    resp_text = "alternate route definition"
+
+    def home(req, resp):
+        resp.text = resp_text
+    
+    api.add_route("/alternative", home)
+
+    assert client.get("http://testserver/alternative")

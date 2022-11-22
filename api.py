@@ -40,10 +40,10 @@ class API:
         return resp
 
     def route(self, path):
-        assert path not in self.routes, f"Such a route already exists\n{path}"
+        assert path not in self.routes, f"Such a route already exists\n{path}\n"
 
         def wrapper(handler):
-            self.routes[path] = handler
+            self.add_route(path, handler)
             return handler
 
         return wrapper
@@ -57,3 +57,8 @@ class API:
         session.mount(prefix=base_url, adapter=RequestsWSGIAdapter(self))
         
         return session
+
+    def add_route(self, path, handler):
+        assert path not in self.routes, f"Such a route already exists\n{path}\n"
+
+        self.routes[path] = handler
