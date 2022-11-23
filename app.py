@@ -32,13 +32,6 @@ def handler(req, resp):
 
 app.add_route("/sample", handler)
 
-@app.route("/template")
-def template_handler(req,resp):
-    resp.body = app.template(
-        "index.html", context = {
-            "name" : "Python Full Stack Practice",
-            "title" : "My Python Framework"}).encode()
-
 @app.route("/exception")
 def exception_throwing_handler(req,resp):
     raise AssertionError("This handler should not be used")
@@ -59,3 +52,19 @@ class CustomMiddleware(Middleware):
         print("Processing resp", req.url)
 
 app.add_middleware(CustomMiddleware)
+
+@app.route("/template")
+def template_handler(req, resp):
+    resp.html = app.template("index.html",
+        context = {
+            "name" : "Full stack practice",
+            "title" : "Full stack dev"
+        })
+
+@app.route("/json")
+def json_handler(req, resp):
+    resp.json = {"name" : "data", "type" : "JSON"}
+
+@app.route("/text")
+def text_handler(req,resp):
+    resp.text = "simple text"
