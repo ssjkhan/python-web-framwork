@@ -170,3 +170,41 @@ def test_allowed_methods_for_function_based_handlers(api,client):
         client.get("http://testserver/home")
 
     assert client.post("http://testserver/home").text == "hello"
+
+def test_response_json(api, client):
+    @api.route("/json")
+    def json_handler(req,resp):
+        resp.json = {"name" : "full stack exercise"}
+
+    response = client.get("http://testserver/json")
+    json_body = response.json()
+
+    assert response.headers["Content-Type"] == "application/json"
+    assert json_body["name"] == "full stack exercise"
+
+def test_response_html(api, client):
+    @api.route("/html")
+    def html_handler(req, resp):
+        resp.html = api.template("index.html", context = {
+            "title" : "a title",
+            "name" : "a name"})
+
+    response = client.get("http://testserver/html")
+
+    assert "text/html" in response.headers["Content-Type"]
+    assert "a title" in response.text
+    assert "a name" in  response.text
+
+def test_response_text(api, client):
+    @api.route("/body")
+    def text_handler(req, resp):
+        resp.body = b"i byte u"
+        resp.content_type = "text/plain"
+
+    response = client.get("http://testserver/body")
+
+    assert "text/plain" in response.headers["Content-Type"]
+    assert response.text == "i byte u"
+
+
+    
