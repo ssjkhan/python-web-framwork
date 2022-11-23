@@ -24,7 +24,7 @@ class API:
 
     def __call__(self, env, callback_):
         path_info = env["PATH_INFO"]
-        
+
         if path_info.startswith("/static"):
             env["PATH_INFO"] = path_info[len("/static"):]
             return self.whitenoise(env, callback_)
@@ -41,26 +41,32 @@ class API:
         return resp(env, callback_)
 
     def find_handler(self,req_path):
-        for path, handler in self.routes.items():
+        for path, handler_data in self.routes.items():
             parse_res = parse(path, req_path)
             
             if parse_res is not None:
-                return handler, parse_res.named
+                return handler_data, parse_res.named
        
         return None, None
 
     def handle_request(self, req):
         resp = Response()
 
-        handler, kwargs = self.find_handler(req.path)
+        handler_data, kwargs = self.find_handler(req.path)
 
         try:
-            if handler is not None:
+            if handler_data is not None:
+                handler = handler_data["handler"]
+                allowed_methods = handler_data["allowed_methods"]
+                
                 if inspect.isclass(handler):
                     handler = getattr(handler(), req.method.lower(), None)
                     if handler is None:
                         raise AttributeError("Method not allowed", req.method)
-                
+                else:
+                    if req.method.lower() not in allowed_methods:
+                        raise AttributeError("Method not allowed", req.method)
+
                 handler(req, resp, **kwargs)
             else:
                 self.default_response(resp)
@@ -72,11 +78,11 @@ class API:
 
         return resp
 
-    def route(self, path):
+    def route(self, path, allowed_methods = None):
         assert path not in self.routes, f"Such a route already exists\n{path}\n"
 
         def wrapper(handler):
-            self.add_route(path, handler)
+            self.add_route(path, handler, allowed_methods)
             return handler
 
         return wrapper
@@ -91,10 +97,13 @@ class API:
         
         return session
 
-    def add_route(self, path, handler):
+    def add_route(self, path, handler, allowed_methods=None):
         assert path not in self.routes, f"Such a route already exists\n{path}\n"
 
-        self.routes[path] = handler
+        if allowed_methods is None:
+            allowed_methods = ["get", "post", "put", "delete", "options"]
+
+        self.routes[path] = {'handler' : handler, 'allowed_methods' : allowed_methods }
 
     def template(self, template_name, context=None):
         if context is None:
