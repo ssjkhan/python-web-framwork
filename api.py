@@ -6,7 +6,7 @@ from requests import Session as RequestsSession
 import os
 from jinja2 import Environment, FileSystemLoader
 from whitenoise import WhiteNoise
-
+from middleware import Middleware
 
 class API:
     def __init__(self, templates_dir="templates", static_dir = "static"):
@@ -19,8 +19,14 @@ class API:
 
         self.whitenoise = WhiteNoise(self.wsgi_app, root = static_dir)
 
+        self.middleware = Middleware(self)
+
+
     def __call__(self, env, callback_):
-        return self.whitenoise(env, callback_)
+        return self.middleware(env, callback_)
+
+    def add_middleware(self, middleware_cls):
+        self.middleware.add(middleware_cls)
 
     def wsgi_app(self, env, callback_):
         req = Request(env)
@@ -93,3 +99,4 @@ class API:
 
     def add_exception_handler(self, exception_handler):
         self.exception_handler = exception_handler
+

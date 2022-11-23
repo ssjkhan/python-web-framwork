@@ -1,6 +1,6 @@
 import pytest
 from api import API
-
+from middleware import Middleware
 # helpers
 
 FILE_DIR = "css"
@@ -132,3 +132,30 @@ def test_static_assets_served(tmpdir_factory):
 
     assert response.status_code == 200
     assert response.text == FILE_CONTENTS
+
+def test_middleware_method_call(api,client):
+    proc_req_called = False
+    proc_resp_called = False
+
+    class CallMiddlewareMethods(Middleware):
+        def __init__(self, app):
+            super().__init__(app)
+
+            def proc_req(self,req):
+                nonlocal proc_req_called
+                proc_req_called = True
+
+            def proc_resp(self, req, resp):
+                nonlocal proc_resp_called
+                proc_resp_called = True
+
+    api.add_middleware(CallMiddlewareMethods)
+
+    @api.route("/")
+    def index(req,resp):
+        resp.text = "YOLO"
+
+    client.get("Http://testserver/")
+
+    assert proc_req_called is True
+    assert proc_resp_called is True

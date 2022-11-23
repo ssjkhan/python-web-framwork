@@ -1,4 +1,5 @@
 from api import API
+from middleware import Middleware
 
 app = API()
 
@@ -46,3 +47,15 @@ def custom_except_handler(req, resp, except_cls):
     resp.text = str(except_cls)
 
 app.add_exception_handler(custom_except_handler)
+
+
+# app.add_middleware()
+
+class CustomMiddleware(Middleware):
+    def process_req(self, req):
+        print("Processing req\t", req.url)
+
+    def process_resp(self, req,resp):
+        print("Processing resp", req.url)
+
+app.add_middleware(CustomMiddleware)
