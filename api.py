@@ -23,6 +23,12 @@ class API:
 
 
     def __call__(self, env, callback_):
+        path_info = env["PATH_INFO"]
+        
+        if path_info.startswith("/static"):
+            env["PATH_INFO"] = path_info[len("/static"):]
+            return self.whitenoise(env, callback_)
+
         return self.middleware(env, callback_)
 
     def add_middleware(self, middleware_cls):

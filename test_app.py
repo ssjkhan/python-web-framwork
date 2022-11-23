@@ -119,7 +119,7 @@ def test_exception_handler(api,client):
     assert response.text == "Attribute Error Happened"
 
 def text_static_404(client):
-    assert client.get(f"http://textserver/main.css").status_code == 404
+    assert client.get(f"http://textserver/static/main.css").status_code == 404
 
 
 def test_static_assets_served(tmpdir_factory):
@@ -128,7 +128,7 @@ def test_static_assets_served(tmpdir_factory):
     api = API(static_dir=str(static_dir))
     client = api.test_session()
 
-    response = client.get(f"http://testserver/{FILE_DIR}/{FILE_NAME}")
+    response = client.get(f"http://testserver/static/{FILE_DIR}/{FILE_NAME}")
 
     assert response.status_code == 200
     assert response.text == FILE_CONTENTS
@@ -141,13 +141,13 @@ def test_middleware_method_call(api,client):
         def __init__(self, app):
             super().__init__(app)
 
-            def proc_req(self,req):
-                nonlocal proc_req_called
-                proc_req_called = True
+        def process_req(self,req):
+            nonlocal proc_req_called
+            proc_req_called = True
 
-            def proc_resp(self, req, resp):
-                nonlocal proc_resp_called
-                proc_resp_called = True
+        def process_resp(self, req, resp):
+            nonlocal proc_resp_called
+            proc_resp_called = True
 
     api.add_middleware(CallMiddlewareMethods)
 
