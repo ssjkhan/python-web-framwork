@@ -162,3 +162,14 @@ def test_update_author(db, Author):
 
     assert darlene_from_db.age == 52
     assert darlene_from_db.name == "Harry Potter"
+
+
+def test_delete_author(db, Author):
+    db.create(Author)
+    darlene = Author(name="darlene", age = 44)
+    db.save(darlene)
+
+    db.delete(Author, id=1)
+
+    with pytest.raises(Exception):
+        db.get(Author, 1)
