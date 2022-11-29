@@ -1,36 +1,12 @@
 import os
 import sqlite3
 import pytest
+import inspect
+
 
 from my_orm import Database, Table, Column, ForeignKey
 
 # fixtures
-@pytest.fixture
-def db():
-    DB_PATH = "./test.db"
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-    db = Database(DB_PATH)
-    return db
-
-
-@pytest.fixture
-def Author():
-    class Author(Table):
-        name = Column(str)
-        age = Column(int)
-    
-    return Author
-
-@pytest.fixture
-def Book(Author):
-    class Book(Table):
-        title = Column(str)
-        published = Column(bool)
-        author = ForeignKey(Author)
-
-    return Book
-
 def test_create_db(db):
     assert isinstance(db.conn, sqlite3.Connection)
     assert db.tables == []
@@ -55,3 +31,41 @@ def test_create_tables(db, Author, Book):
 
     for table in ("author", "book"):
         assert table in db.tables
+
+
+def test_create_author(db, Author):
+    db.create(Author)
+    name_ = "John Doe"
+    age = 35
+
+    print(inspect.getmro(Author))
+
+    author_entry = Author(name = name_, age = age)
+
+    assert author_entry.name == name_
+    assert author_entry.age == age
+    assert author_entry.id is None
+
+
+def test_save_author_instances(db, Author):
+    db.create(Author)
+
+    john = Author(name="John Doe", age=23)
+    db.save(john)
+    assert john._get_insert_sql() == (
+        "INSERT INTO author (age, name) VALUES (?, ?);",
+        [23, "John Doe"]
+    )
+    assert john.id == 1
+
+    ralph = Author(name="Ralph Tungol", age=28)
+    db.save(ralph)
+    assert ralph.id == 2
+
+    lucas = Author(name="Lucas Friedmann", age=43)
+    db.save(lucas)
+    assert lucas.id == 3
+
+    kendra = Author(name="Kendra Yoshizawa", age=39)
+    db.save(kendra)
+    assert kendra.id == 4

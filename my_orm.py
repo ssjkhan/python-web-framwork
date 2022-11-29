@@ -13,13 +13,22 @@ class Database:
     def tables(self):
         SELECT_TABLES_SQL = "SELECT name FROM sqlite_master WHERE type = 'table'"
         return [x[0] for x in self.conn.execute(SELECT_TABLES_SQL).fetchall()]
-        
+
     def create(self, table):
         self.conn.execute(table._get_create_sql())
     
     
 
 class Table:
+    def __init__(self, **kwargs):
+        self._data = {
+            "id" : None,
+        }
+
+        for key, val in kwargs.items():
+            self._data[key] = val
+
+    
     @classmethod 
     def _get_create_sql(cls):
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
@@ -35,6 +44,14 @@ class Table:
         name = cls.__name__.lower()
         
         return CREATE_TABLE_SQL.format(name = name, fields = fields)
+
+    def __getattribute__(self, name_: str):
+        _data = super().__getattribute__("_data")
+
+        if name_ in _data:
+            return _data[name_]
+        return super().__getattribute__(name_)
+
 
 class Column:
     def __init__(self, column_type):

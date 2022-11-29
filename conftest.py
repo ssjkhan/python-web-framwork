@@ -1,5 +1,9 @@
+import os
 import pytest
+
 from api import API
+from my_orm import Database, Table, Column, ForeignKey
+
 
 @pytest.fixture
 def api():
