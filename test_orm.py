@@ -148,3 +148,18 @@ def test_query_all(db, Author, Book):
 
     assert len(books) == 2
     assert books[1].author.name == "darlene"
+
+
+def test_update_author(db, Author):
+    db.create(Author)
+    darlene = Author(name="darlene", age=25)
+    db.save(darlene)
+
+    darlene.age = 52
+    darlene.name = "Harry Potter"
+    db.update(darlene)
+
+    darlene_from_db = db.get(Author, id=darlene.id)
+
+    assert darlene_from_db == 52
+    assert darlene_from_db == "Harry Potter"
