@@ -47,9 +47,33 @@ class Database:
         instance = table()
 
         for field, val in zip(fields, row):
+            if field.endswith("_id"):
+                field = field[:-3]
+                foreign_key = getattr(table,field)
+                val =self.get(foreign_key.table, id=val)
+
             setattr(instance, field, val)
 
         return instance    
+
+    def get_all(self, table):
+        SQL, fields = table._get_select_all_sql()
+
+        result = []
+
+        for row in self.conn.execute(SQL).fetchall():
+            instance = table()
+
+            for field, val in zip(fields, row):
+                if field.endswith ("_id"):
+                    field = field[:-3]
+                    foreign_key = getattr(table, field)
+                    val = self.get(foreign_key.table, id=val)
+                setattr(instance, field, val)
+
+            result.append(instance)
+
+        return result
 
 class Table:
     def __init__(self, **kwargs):

@@ -128,3 +128,23 @@ def test_get_book(db, Author, Book):
     assert book_from_db.title == "darlene's bio"
     assert book_from_db.author.name == "darlene"
     assert book_from_db.author.id == 2
+
+def test_query_all(db, Author, Book):
+    db.create(Author)
+    db.create(Book)
+
+    john = Author(name="john", age=43)
+    darlene = Author(name="darlene", age=50)
+
+    book_j = Book(title="john's bio", published=False, author=john)
+    book_d = Book(title="darlene's bio", published=True, author=darlene)
+
+    db.save(john)
+    db.save(darlene)
+    db.save(book_j)
+    db.save(book_d)
+
+    books= db.get_all(Book)
+
+    assert len(books) == 2
+    assert books[1].author.name == "darlene"
