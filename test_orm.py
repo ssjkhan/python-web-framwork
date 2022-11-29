@@ -107,3 +107,24 @@ def test_get_author(db, Author):
     assert author_from_db.age == 43
     assert author_from_db.name == "John Doe"
     assert author_from_db.id == 1
+
+def test_get_book(db, Author, Book):
+    db.create(Author)
+    db.create(Book)
+
+    john = Author(name="john", age=43)
+    darlene = Author(name="darlene", age=50)
+
+    book_j = Book(title="john's bio", published=False, author=john)
+    book_d = Book(title="darlene's bio", published=True, author=darlene)
+
+    db.save(john)
+    db.save(darlene)
+    db.save(book_j)
+    db.save(book_d)
+
+    book_from_db = db.get(Book, 2)
+
+    assert book_from_db.title == "darlene's bio"
+    assert book_from_db.author.name == "darlene"
+    assert book_from_db.author.id == 2
