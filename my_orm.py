@@ -30,8 +30,14 @@ class Database:
 
         for row in self.conn.execute(SQL).fetchall():
             instance = table()
+
             for field, val in zip(fields, row):
+                if field.endswith ("_id"):
+                    field = field[:-3]
+                    foreign_key = getattr(table, field)
+                    val = self.get(foreign_key.table, id=val)
                 setattr(instance, field, val)
+
             result.append(instance)
         
         return result
@@ -56,24 +62,14 @@ class Database:
 
         return instance    
 
-    def get_all(self, table):
-        SQL, fields = table._get_select_all_sql()
+    def update(self, instance):
+        SQL, values = instance._get_update_sql()
+        print(SQL)
+        print(values)
+        self.conn.execute(SQL,values)
+        self.conn.commit()
 
-        result = []
 
-        for row in self.conn.execute(SQL).fetchall():
-            instance = table()
-
-            for field, val in zip(fields, row):
-                if field.endswith ("_id"):
-                    field = field[:-3]
-                    foreign_key = getattr(table, field)
-                    val = self.get(foreign_key.table, id=val)
-                setattr(instance, field, val)
-
-            result.append(instance)
-
-        return result
 
 class Table:
     def __init__(self, **kwargs):
@@ -168,6 +164,26 @@ class Table:
         sql = SQL.format(name=cls.__name__.lower(), fields=fields, placeholders=placeholders)
 
         return sql, values
+
+    def _get_update_sql(self):
+        SQL = "UPDATE {name} SET {fields} WHERE id = ?"
+        cls = self.__class__
+        fields = []
+        values = []
+
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+                values.append(getattr(self, name))
+            elif isinstance(field, ForeignKey):
+                fields.append(name +"_id")
+                values.append(getattr(self,name).id)
+
+        values.append(getattr(self, "id"))
+
+        SQL = SQL.format(name = cls.__name__.lower(), fields= ", ".join([f"{field} = ?" for field in fields]))
+        
+        return SQL, values
 
 
 class Column:

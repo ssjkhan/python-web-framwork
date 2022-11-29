@@ -3,7 +3,6 @@ import sqlite3
 import pytest
 import inspect
 
-
 from my_orm import Database, Table, Column, ForeignKey
 
 # fixtures
@@ -144,7 +143,7 @@ def test_query_all(db, Author, Book):
     db.save(book_j)
     db.save(book_d)
 
-    books= db.get_all(Book)
+    books= db.all(Book)
 
     assert len(books) == 2
     assert books[1].author.name == "darlene"
@@ -161,5 +160,5 @@ def test_update_author(db, Author):
 
     darlene_from_db = db.get(Author, id=darlene.id)
 
-    assert darlene_from_db == 52
-    assert darlene_from_db == "Harry Potter"
+    assert darlene_from_db.age == 52
+    assert darlene_from_db.name == "Harry Potter"
