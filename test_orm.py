@@ -80,8 +80,8 @@ def test_query_all_authors(db, Author):
 
     authors = db.all(Author)
 
-    assert Author.__get_select_all_sql() == (
-        "SELECT id, age, name FROM auther;",
+    assert Author._get_select_all_sql() == (
+        "SELECT id, age, name FROM author;",
         ["id", "age", "name"]
     )
 

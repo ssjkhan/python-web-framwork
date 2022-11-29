@@ -22,7 +22,19 @@ class Database:
         cursor = self.conn.execute(sql,values)
         instance._data["id"] = cursor.lastrowid
         self.conn.commit()
-    
+
+    def all(self, table):
+        SQL, fields = table._get_select_all_sql()
+
+        result = []
+
+        for row in self.conn.execute(SQL).fetchall():
+            instance = table()
+            for field, val in zip(fields, row):
+                setattr(instance, field, val)
+            result.append(instance)
+        
+        return result
     
 
 class Table:
@@ -33,7 +45,7 @@ class Table:
 
         for key, val in kwargs.items():
             self._data[key] = val
-
+ 
     
     @classmethod 
     def _get_create_sql(cls):
@@ -51,6 +63,22 @@ class Table:
         
         return CREATE_TABLE_SQL.format(name = name, fields = fields)
 
+    @classmethod
+    def _get_select_all_sql(cls):
+        SQL = "SELECT {fields} FROM {name};"
+
+        fields = ["id"]
+
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field,Column):
+                fields.append(name)
+            if isinstance(field, ForeignKey):
+                fields.append(name + "_id")
+
+        SQL = SQL.format(name=cls.__name__.lower(), fields=", ".join(fields))
+
+        return SQL, fields
+    
     def __getattribute__(self, name_: str):
         _data = super().__getattribute__("_data")
 
